@@ -1,0 +1,2 @@
+max_list_length=100
+collapse_abstract=False

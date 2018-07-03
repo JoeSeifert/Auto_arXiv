@@ -59,7 +59,9 @@ class ArXivGui:
 		self.artlist.config(scrollregion=(0,0,500, self.article_list_len*100))
 		self.scrollbar = Scrollbar(self.artlist_frame, command=self.artlist.yview)
 		self.artlist.config(yscrollcommand=self.scrollbar.set)
-		self.artlist.bind_all("<MouseWheel>", self.on_mousewheel)
+		self.root.bind_all("<MouseWheel>", self.on_mousewheel)
+		self.root.bind_all("<Up>", self.on_upkey)
+		self.root.bind_all("<Down>", self.on_downkey)
 
 		# set up article list, all frames are located in self.art_frame_list
 		self.art_frame_list = []
@@ -98,10 +100,10 @@ class ArXivGui:
 		self.author_frame.rowconfigure(0,minsize=50)
 		self.abstract_frame.columnconfigure(0,minsize=500)
 		self.abstract_frame.rowconfigure(0,minsize=360)
-		self.dateid_frame.columnconfigure(0,minsize=250)
+		self.dateid_frame.columnconfigure(0,minsize=166.66)
 		self.dateid_frame.rowconfigure(0,minsize=30)
-		self.dateid_frame.columnconfigure(1,minsize=250)
-		self.dateid_frame.rowconfigure(0,minsize=30)
+		self.dateid_frame.columnconfigure(1,minsize=166.66)
+		self.dateid_frame.columnconfigure(2,minsize=166.66)
 
 		self.artlist_frame.rowconfigure(0, minsize=500)
 		self.artlist_frame.columnconfigure(0, minsize=490)
@@ -130,6 +132,10 @@ class ArXivGui:
 		self.date_text.set(format_date(self.current_entry['published']))
 		self.date = Label(self.dateid_frame, textvariable= self.date_text).grid(row=0, column=0)
 
+		self.subsec_text = StringVar()
+		self.subsec_text.set(self.current_entry['subsection'])
+		self.subsec_label = Label(self.dateid_frame, textvariable= self.subsec_text).grid(row=0, column=2)
+
 		# placing everything
 		self.mainframe.grid(row=0, column=0)
 		self.artlist_frame.grid(row=0, column=0)
@@ -147,6 +153,7 @@ class ArXivGui:
 		self.abstract_text.set(self.current_entry['summary'].replace('\n', ' '))
 		self.id_text.set(self.current_entry['id'])
 		self.date_text.set(format_date(self.current_entry['published']))
+		self.subsec_text.set(self.current_entry['subsection'])
 
 	def construct_author_list(self, entry):
 		final_string = ''
@@ -160,13 +167,29 @@ class ArXivGui:
 	def on_mousewheel(self, event):
 		self.artlist.yview_scroll(-int(event.delta/120), "units")
 
+	def on_downkey(self, event):
+		if self.article_index < (self.article_list_len - 1):
+			self.article_index+= 1
+			self.current_entry = self.entries[self.article_index]
+			self.change_article()
+			self.highlight_current_entry(self.art_frame_list[self.article_index])
+
+	def on_upkey(self, event):
+		if self.article_index > 0:
+			self.article_index-= 1
+			self.current_entry = self.entries[self.article_index]
+			self.change_article()
+			self.highlight_current_entry(self.art_frame_list[self.article_index])			
+
 	def on_leftclick(self, event):
 		# if either label in the frame is clicked, AttributeError is raised and the encapsualting frame is selected instead
 		try:
 			self.current_entry = self.entries[event.widget.article_number]
+			self.article_index = event.widget.article_number
 			self.highlight_current_entry(event.widget)
 		except AttributeError:
 			self.current_entry = self.entries[event.widget.master.article_number]
+			self.article_index = event.widget.master.article_number
 			self.highlight_current_entry(event.widget.master)
 		self.change_article()
 

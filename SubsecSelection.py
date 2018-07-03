@@ -21,9 +21,10 @@ class SubsecSelection:
 			self.checkbutton_list[i].grid(row=i, column=0)
 		Button(self.mainframe, text='SUBMIT', command=self.submit_subsecs).grid(row=len(self.all_subsecs_formal), column=0)
 		self.mainframe.grid(row=0, column=0)
+		self.root.bind_all('<Return>', self.submit_subsecs)
 
 
-	def submit_subsecs(self):
+	def submit_subsecs(self, *args):
 		ind_list = []
 		for i,selection in enumerate(self.checkbutton_variable_list):
 			if selection.get():

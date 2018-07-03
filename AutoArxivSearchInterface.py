@@ -5,6 +5,8 @@ import autoArxiv as aa
 import time
 from PIL import Image, ImageTk
 from LoadingScreen import LoadingScreen
+from SubsecSelection import SubsecSelection
+from ProgramSettings import ProgramSettings
 
 # To do:
 # - Comment everything, you lazy fuck
@@ -374,76 +376,6 @@ class SearchInterface:
 		self.settings.change_setting('collapse_abstract', str(self.collapse_abstract.get()))
 		print('Collapse Abstract is now set to {}'.format(self.settings.settings['collapse_abstract']))
 		self.tl.destroy()
-
-class ProgramSettings:
-
-	def __init__(self, filename):
-		self.filename = filename
-		self.settings = {}
-		self.read_settings_log()
-
-	def make_settings_file(self):
-		f = open(self.filename, 'w+')
-		f.write('max_list_length=100\n')
-		f.write('collapse_abstract=True\n')
-		f.close()
-
-	def read_settings_log(self):
-		try:
-			f = open(self.filename, 'r')
-		except FileNotFoundError:
-			self.make_settings_file()
-			f = open(self.filename, 'r')
-		for line in f.readlines():
-			line = line.replace('\n','').split('=')
-			self.settings[line[0]] = line[1]
-		f.close()
-	
-	def write_log(self):
-		self.clear_log_contents()
-		f = open(self.filename, 'w')
-		for key, value in self.settings.items():
-			f.write('{0}={1}\n'.format(key,value))
-		f.close()
-
-	def clear_log_contents(self):
-		f = open(self.filename,'r+')
-		f.truncate()
-		f.close()
-
-	def change_setting(self,setting_key,new_value):
-		self.settings[setting_key] = str(new_value)
-		self.write_log()
-
-class SubsecSelection:
-
-	def __init__(self,root):
-		self.subsec_list = []
-		self.root = root
-		self.mainframe = ttk.Frame(self.root)
-		self.all_subsecs_shorthand = ('cond-mat.dis-nn', 'cond-mat.mtrl-sci', 'cond-mat.mes-hall', 'cond-mat.other', 'cond-mat.quant-gas', 
-			'cond-mat.soft', 'cond-mat.stat-mech', 'cond-mat.str-el', 'cond-mat.supr-con')
-		self.all_subsecs_formal = ('Disordered Systems and Neural Networks', 'Materials Science', 'Mesoscale and Nanoscale Physics', 'Other Condensed Matter', 'Quantum Gases', 
-			'Soft Condensed Matter', 'Statistical Mechanics', 'Strongly Correlated Electrons', 'Superconductivity')
-
-		self.checkbutton_variable_list = []
-		self.checkbutton_list = []
-		for i in range(len(self.all_subsecs_formal)):
-			self.checkbutton_variable_list.append(BooleanVar())
-			self.checkbutton_list.append(ttk.Checkbutton(self.mainframe, variable=self.checkbutton_variable_list[i], text=self.all_subsecs_formal[i]))
-			self.checkbutton_list[i].grid(row=i, column=0)
-		Button(self.mainframe, text='SUBMIT', command=self.submit_subsecs).grid(row=len(self.all_subsecs_formal), column=0)
-		self.mainframe.grid(row=0, column=0)
-
-
-	def submit_subsecs(self):
-		ind_list = []
-		for i,selection in enumerate(self.checkbutton_variable_list):
-			if selection.get():
-				self.subsec_list.append(self.all_subsecs_shorthand[i])
-
-		# print('Selected Subsections: {}'.format(', '.join(self.subsec_list)))
-		self.root.destroy()
 
 # helper functions below
 

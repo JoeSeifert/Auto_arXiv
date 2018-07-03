@@ -35,6 +35,9 @@ from PIL import Image, ImageTk
 # - it would look super slick if the info box went back to the welcome message after a few seconds of an error being displayed :P
 # - standardize top levels (aside from article reader)? Call them all self.tl, destroy after use?
 
+# Changes:
+# 2018-07-03 -- removed settings button for now. Code is still there to use it in the future, but it seemed pointless for now
+
 
 class SearchInterface:
 
@@ -77,15 +80,16 @@ class SearchInterface:
 		Label(self.query_select_frame, text='Select a query: ').grid(row=0, column=0, sticky=W)
 		self.query_selection = Listbox(self.query_select_frame, listvariable= self.lbox_variable)
 		self.query_selection.bind('<<ListboxSelect>>', self.set_query_label)
+		self.query_selection.bind('<Double-Button-1>', self.read_new_articles)
 		self.query_selection.grid(row=1, column=0, sticky=(N,E,W,S))
 		self.all_queries = BooleanVar()
 		self.all_queries_button = ttk.Checkbutton(self.query_select_frame, variable=self.all_queries, command=self.all_queries_selected, text='Select all queries')
 		self.all_queries_button.grid(row=2, column=0, sticky=W)
-		self.original_gear = Image.open('gear.gif')
-		resized = self.original_gear.resize((20,20), Image.ANTIALIAS)
-		self.gear_pic = ImageTk.PhotoImage(resized)
-		self.settings_button = Button(self.query_select_frame, image=self.gear_pic, command=self.settings_window)
-		self.settings_button.grid(row=2, column=0, sticky=E)
+		# self.original_gear = Image.open('gear.gif')
+		# resized = self.original_gear.resize((20,20), Image.ANTIALIAS)
+		# self.gear_pic = ImageTk.PhotoImage(resized)
+		# self.settings_button = Button(self.query_select_frame, image=self.gear_pic, command=self.settings_window)
+		# self.settings_button.grid(row=2, column=0, sticky=E)
 
 		# setting up options
 		self.button1 = Button(self.option_select_frame, text= 'New Articles', command=self.read_new_articles)
@@ -118,7 +122,7 @@ class SearchInterface:
 		selection = self.query_selection.curselection()
 		self.current_query.set(self.search_list[selection[0]])
 
-	def read_new_articles(self):
+	def read_new_articles(self, *args):
 
 		# a couple potential bugs:
 		# - if a topic isn't posted about for a loooooong time (>1 month), then highestID will be 0. This will cause the log to be written as thus, making any article it sees the "newest article". Perhaps no negative consequences?
@@ -166,7 +170,7 @@ class SearchInterface:
 				self.status_msg.set('No new articles to present for {}!'.format(self.current_query.get()))
 			# print in info box: No new articles to present! (Make this red text so it's obvious?)
 
-	def read_all_articles(self):
+	def read_all_articles(self, *args):
 
 		self.current_article_list=[]
 		if self.all_queries.get():
@@ -243,12 +247,15 @@ class SearchInterface:
 		if mode=='edit':
 			self.qlabel_text.set(self.current_query.get())
 			self.queries_text.set(separate_by_commas(self.slog.sdict[self.current_query.get()]['queries']))
+
 		qlabel = Entry(qb_frame, textvariable=self.qlabel_text)
 		search_queries = Entry(qb_frame, textvariable= self.queries_text)
+		qlabel.focus_set()
 
 		Label(qb_frame, text= 'Query label').grid(row=0, column=0, sticky=W)
 		Label(qb_frame, text= 'All search queries, separated by commas: ').grid(row=1, column=0, sticky=W)
 		Button(qb_frame, text= 'Submit', command=lambda: self.build_new_query_button(mode)).grid(row=2, column=0, columnspan=2)
+		self.query_builder_top_level.bind('<Return>', lambda event, mode_ = mode: self.build_new_query_button(mode_))
 
 		qb_frame.grid(row=0, column=0)
 		qlabel.grid(row=0, column=1)

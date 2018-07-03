@@ -91,7 +91,6 @@ class ArXivGui:
 		self.highlighted_widget.title.configure(bg='SkyBlue1')
 		self.highlighted_widget.authors.configure(bg='SkyBlue1')
 
-
 		# configure row/columns, do this manually so I know exactly what I get
 		self.title_frame.columnconfigure(0,minsize=500)
 		self.title_frame.rowconfigure(0,minsize=60)

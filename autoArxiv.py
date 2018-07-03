@@ -24,7 +24,7 @@ def callAPI(subsec):
 	# splits response up into separate entries
 	base_url = 'http://export.arxiv.org/api/query?'
 	q = 'search_query=cat:'+subsec+'&start=0&max_results=500&sortBy=submittedDate&sortOrder=descending'
-	print('Url = {}'.format(base_url+q))
+	#print('Url = {}'.format(base_url+q))
 	response = urllib.request.urlopen(base_url+q).read()
 	response = response.decode('utf8')
 	#response = str(response)

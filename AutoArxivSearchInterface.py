@@ -414,36 +414,70 @@ class ProgramSettings:
 		self.settings[setting_key] = str(new_value)
 		self.write_log()
 
+class SubsecSelection:
+
+	def __init__(self,root):
+		self.subsec_list = []
+		self.root = root
+		self.mainframe = ttk.Frame(self.root)
+		self.all_subsecs_shorthand = ('cond-mat.dis-nn', 'cond-mat.mtrl-sci', 'cond-mat.mes-hall', 'cond-mat.other', 'cond-mat.quant-gas', 
+			'cond-mat.soft', 'cond-mat.stat-mech', 'cond-mat.str-el', 'cond-mat.supr-con')
+		self.all_subsecs_formal = ('Disordered Systems and Neural Networks', 'Materials Science', 'Mesoscale and Nanoscale Physics', 'Other Condensed Matter', 'Quantum Gases', 
+			'Soft Condensed Matter', 'Statistical Mechanics', 'Strongly Correlated Electrons', 'Superconductivity')
+
+		self.checkbutton_variable_list = []
+		self.checkbutton_list = []
+		for i in range(len(self.all_subsecs_formal)):
+			self.checkbutton_variable_list.append(BooleanVar())
+			self.checkbutton_list.append(ttk.Checkbutton(self.mainframe, variable=self.checkbutton_variable_list[i], text=self.all_subsecs_formal[i]))
+			self.checkbutton_list[i].grid(row=i, column=0)
+		Button(self.mainframe, text='SUBMIT', command=self.submit_subsecs).grid(row=len(self.all_subsecs_formal), column=0)
+		self.mainframe.grid(row=0, column=0)
+
+
+	def submit_subsecs(self):
+		ind_list = []
+		for i,selection in enumerate(self.checkbutton_variable_list):
+			if selection.get():
+				self.subsec_list.append(self.all_subsecs_shorthand[i])
+
+		# print('Selected Subsections: {}'.format(', '.join(self.subsec_list)))
+		self.root.destroy()
+
 class LoadingScreen:
 
 	def __init__(self,root,subsec):
 		self.entry_list = []
 		self.root = root
-		self.subsec = subsec
+		self.subsec_list = subsec
 		Label(self.root, text='Loading...', font='Helvetica 12 bold').grid(row=0, column=0, padx=20, pady=20)
 		self.root.after(50, self.gather_articles)
 
 	def gather_articles(self):
 		# call API for recent articles, parse through them, give resulting articles as entries
-		response = aa.callAPI(self.subsec)
-		entries = aa.parseAPIResponse(response)
-		entries = entries[1:len(entries)] # parsing entries catches some metadata at the beginning. This removes it.
+		for subsec in self.subsec_list:
+			print('Acquiring articles for {}'.format(subsec))
+			response = aa.callAPI(subsec)
+			entries = aa.parseAPIResponse(response, printPrompt=False)
+			entries = entries[1:len(entries)] # parsing entries catches some metadata at the beginning. This removes it.
 
-		# Patchwork author list fix because it looked super duper ugly
-		for i,entry in enumerate(entries):
-			auth_list = []
-			try:
-				if type(entry['author']) is str:			# for when author list is only one entry
-					entry['author'] = [entry['author']] 
-				for author in entry['author']:
-					author = author.split('<name>')[1]
-					author = author.split('</name>')[0]
-					auth_list.append(author)
-				entry['author'] = auth_list
-				entries[i] = entry
-			except KeyError:
-				continue
-		self.entry_list = entries
+			# Patchwork author list fix because it looked super duper ugly
+			for i,entry in enumerate(entries):
+				auth_list = []
+				try:
+					if type(entry['author']) is str:			# for when author list is only one entry
+						entry['author'] = [entry['author']] 
+					for author in entry['author']:
+						author = author.split('<name>')[1]
+						author = author.split('</name>')[0]
+						auth_list.append(author)
+					entry['author'] = auth_list
+					entries[i] = entry
+				except KeyError:
+					continue
+			for entry in entries:
+				entry['subsection'] = subsec
+				self.entry_list.append(entry)
 		self.root.destroy()
 
 # helper functions below
@@ -455,8 +489,13 @@ def separate_by_commas(qlist):
 	return final[:-2]
 
 def main():
+	select_subsec = Tk()
+	y = SubsecSelection(select_subsec)
+	select_subsec.mainloop()
+	subsec_list = y.subsec_list
+
 	loading_screen = Tk()
-	x = LoadingScreen(loading_screen, 'cond-mat.mes-hall')
+	x = LoadingScreen(loading_screen, subsec_list)
 	loading_screen.mainloop()
 	entry_list = x.entry_list
 
@@ -465,21 +504,9 @@ def main():
 	root.mainloop()
 
 def test():
-	x = ProgramSettings('settings.txt')
-	print(x.settings)
-
-def suck_it_dacen():
 	root = Tk()
-	root.title('Suck it Dacen')
-	Label(root, text='Suck it Dacen!', font=('Helvetica', 18, 'bold')).grid(row=0, column=0, padx=100, pady=50) 
-	tl_list = []
-	for i in range(1,10):
-		root.after(500*i, lambda: make_new_window(root,tl_list))
+	x = SubsecSelection(root)
 	root.mainloop()
-
-def make_new_window(root, tl_list):
-	tl_list.append(Toplevel(root))
-	Label(tl_list[-1], text='Suck it Dacen!', font=('Helvetica', 18, 'bold')).grid(row=0, column=0, padx=100, pady=50)
 
 if __name__ == '__main__':
 	main()

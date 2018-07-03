@@ -334,7 +334,10 @@ class SearchInterface:
 		for key,_ in self.slog.sdict.items():
 			self.search_list += (key,)
 		self.lbox_variable.set(self.search_list)
-		self.current_query.set(self.search_list[0])
+		try:
+			self.current_query.set(self.search_list[0])
+		except IndexError:
+			self.current_query.set('')
 		self.tl.destroy()
 
 	def all_queries_selected(self):

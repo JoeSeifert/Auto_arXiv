@@ -13,6 +13,7 @@ Made by Joe Seifert
 Python version 3.5.0
 
 changelog:
+-2018-07-03 -- added FileNotFoundError exception in FullSarchLog.readLog() function. Creates log, returns empty log
 -2018-06-28 -- added 'editQueryInLog()' to FullSearchLog class
 			-- changed line in callAPI() so that it actually decoded in utf-8 instead of just converting a byte literal to a string. Yay newbie python mistakes.
 -2018-06-27 -- added 'deleteFromLog()' to FullSearchLog class
@@ -181,13 +182,10 @@ class FullSearchLog:
 			print(i)
 
 	def readLog(self):
-		# reads the log and adds all searches to memory
-		f = open(self.filename,'r+')
-		#except FileNotFoundError:
-		#	print('This error happened? You deleted your Search log, didn\'t you...')
-		#	f = open(self.filename, 'w+')
-		#	f.close()
-		#	return
+		try:
+			f = open(self.filename,'r+')
+		except FileNotFoundError:
+			f = open(self.filename, 'w+')
 
 		lines = f.readlines()
 		f.close()

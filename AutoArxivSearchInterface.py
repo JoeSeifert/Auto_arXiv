@@ -4,6 +4,7 @@ import articleReader as ar
 import autoArxiv as aa
 import time
 from PIL import Image, ImageTk
+from LoadingScreen import LoadingScreen
 
 # To do:
 # - Comment everything, you lazy fuck
@@ -442,42 +443,6 @@ class SubsecSelection:
 				self.subsec_list.append(self.all_subsecs_shorthand[i])
 
 		# print('Selected Subsections: {}'.format(', '.join(self.subsec_list)))
-		self.root.destroy()
-
-class LoadingScreen:
-
-	def __init__(self,root,subsec):
-		self.entry_list = []
-		self.root = root
-		self.subsec_list = subsec
-		Label(self.root, text='Loading...', font='Helvetica 12 bold').grid(row=0, column=0, padx=20, pady=20)
-		self.root.after(50, self.gather_articles)
-
-	def gather_articles(self):
-		# call API for recent articles, parse through them, give resulting articles as entries
-		for subsec in self.subsec_list:
-			print('Acquiring articles for {}'.format(subsec))
-			response = aa.callAPI(subsec)
-			entries = aa.parseAPIResponse(response, printPrompt=False)
-			entries = entries[1:len(entries)] # parsing entries catches some metadata at the beginning. This removes it.
-
-			# Patchwork author list fix because it looked super duper ugly
-			for i,entry in enumerate(entries):
-				auth_list = []
-				try:
-					if type(entry['author']) is str:			# for when author list is only one entry
-						entry['author'] = [entry['author']] 
-					for author in entry['author']:
-						author = author.split('<name>')[1]
-						author = author.split('</name>')[0]
-						auth_list.append(author)
-					entry['author'] = auth_list
-					entries[i] = entry
-				except KeyError:
-					continue
-			for entry in entries:
-				entry['subsection'] = subsec
-				self.entry_list.append(entry)
 		self.root.destroy()
 
 # helper functions below
